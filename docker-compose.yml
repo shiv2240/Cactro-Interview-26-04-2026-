@@ -1,10 +1,40 @@
 version: '3.8'
 
 services:
+  # PostgreSQL database
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-shiv}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-StrongPassword123!}
+      POSTGRES_DB: ${DB_NAME:-shiv_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-shiv} -d ${DB_NAME:-shiv_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Node.js / Express / GraphQL API
   backend:
     build: ./backend
     ports:
       - "3000:3000"
     environment:
-      - MONGO_URI=${MONGO_URI}
+      PORT: 3000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-shiv}
+      DB_PASSWORD: ${DB_PASSWORD:-StrongPassword123!}
+      DB_NAME: ${DB_NAME:-shiv_db}
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
+
+volumes:
+  postgres_data:

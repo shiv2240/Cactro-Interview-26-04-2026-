@@ -15,10 +15,10 @@ A production-ready web application for engineering teams to manage software rele
 | **Frontend** | React 18 + Vite, React Router v6, Vanilla CSS, Axios |
 | **Backend** | Node.js, Express.js, graphql-http |
 | **API** | GraphQL (schema-first, with REST fallback) |
-| **Database** | PostgreSQL (`pg` driver, hosted online) |
+| **Database** | PostgreSQL (`pg` driver — raw SQL, no ORM) |
 | **Testing** | Jest (unit tests for status calculation logic) |
 | **Deployment** | Netlify (frontend) + Render (backend) |
-| **Container** | Docker + docker-compose |
+| **Container** | Docker + docker-compose (Postgres + Backend) |
 
 ---
 
@@ -28,7 +28,7 @@ A production-ready web application for engineering teams to manage software rele
 .
 ├── backend/                  # Node.js/Express GraphQL API (see backend/README.md)
 ├── frontend/                 # React/Vite SPA (see frontend/README.md)
-├── docker-compose.yml        # Local one-command startup
+├── docker-compose.yml        # Spins up PostgreSQL + backend together
 ├── Release-Checklist.postman_collection.json
 └── README.md
 ```
@@ -37,10 +37,24 @@ A production-ready web application for engineering teams to manage software rele
 
 ## Getting Started
 
-### Option A — Docker (recommended)
+### Option A — Docker (recommended, includes Postgres)
+
 ```bash
 docker-compose up --build
 ```
+
+This spins up:
+- A **PostgreSQL 16** container with a named volume for persistence
+- The **backend** Node.js API connected to it
+
+The API will be available at `http://localhost:3000/graphql`.
+
+> You can override credentials via environment variables or a `.env` file in the project root:
+> ```env
+> DB_USER=shiv
+> DB_PASSWORD=StrongPassword123!
+> DB_NAME=shiv_db
+> ```
 
 ### Option B — Manual
 
@@ -49,7 +63,7 @@ docker-compose up --build
 cd backend
 npm install
 cp .env.example .env   # Fill in your PostgreSQL credentials
-npm run dev
+npm run dev            # Start with hot-reload
 npm test               # Run Jest test suite
 ```
 
@@ -68,13 +82,14 @@ npm run dev
 ### Backend (`backend/.env`)
 ```env
 PORT=3000
-DB_HOST=your_postgres_host
+DB_HOST=localhost
 DB_PORT=5432
 DB_USER=your_user
 DB_PASSWORD=your_password
 DB_NAME=your_database
-# Or alternatively:
-# DATABASE_URL=postgresql://user:password@host:5432/dbname
+
+# Alternatively, use a single connection string:
+# DATABASE_URL=postgresql://user:password@host:5432/dbname?sslmode=require
 ```
 
 ### Frontend (`frontend/.env`)
@@ -86,16 +101,18 @@ VITE_API_URL=http://localhost:3000
 
 ## Database Schema
 
-The `releases` table is auto-created at backend startup (no manual migrations needed):
+The `releases` table is created automatically at backend startup — no manual migrations needed:
 
 | Column | Type | Description |
 |---|---|---|
-| `id` | `SERIAL PRIMARY KEY` | Auto-increment ID |
-| `name` | `VARCHAR(255) NOT NULL` | Release name |
-| `release_date` | `TIMESTAMP NOT NULL` | Target release date |
+| `id` | `SERIAL PRIMARY KEY` | Auto-increment integer ID |
+| `name` | `VARCHAR(255) NOT NULL` | Release name (indexed) |
+| `release_date` | `TIMESTAMP NOT NULL` | Target release date (indexed) |
 | `additional_info` | `TEXT` | Optional notes |
-| `status` | `VARCHAR(50)` | Auto-calculated: `planned` / `ongoing` / `done` |
+| `status` | `VARCHAR(50)` | `planned` / `ongoing` / `done` — auto-calculated (indexed) |
 | `steps` | `JSONB` | 7-item checklist array `{ id, name, completed }` |
+
+> Rows with empty `steps` are automatically backfilled with the predefined checklist on every server startup.
 
 ---
 
@@ -109,15 +126,15 @@ All requests go to `POST /graphql`.
 
 ### Mutations
 - `createRelease(name!, release_date!, additional_info)` — creates with default 7-step checklist
-- `updateRelease(id!, ...)` — updates fields; auto-recalculates `status` from steps
+- `updateRelease(id!, name, release_date, additional_info, steps)` — updates; auto-recalculates `status`
 - `deleteRelease(id!)` — permanently removes a release
 
 ---
 
 ## Notable Engineering Decisions
 
-1. **GraphQL without Apollo**: The frontend uses plain `axios.post` with templated GraphQL strings — no heavy client library needed for a single-domain CRUD app.
-2. **PostgreSQL DAO Pattern**: `models/Release.js` is a transparent Data Access Object that mirrors the Mongoose API surface (`find`, `findById`, `findByIdAndUpdate`, etc.) but executes parameterized `pg` SQL under the hood — making the migration from MongoDB seamless.
-3. **Auto-schema migration**: The backend runs `CREATE TABLE IF NOT EXISTS` on startup, so no separate migration tooling is required.
-4. **JSONB for checklist steps**: Storing the steps array as `JSONB` in Postgres avoids a join table while keeping full query flexibility.
+1. **Raw SQL, no ORM**: `graphql/schema.js` and `controllers/releaseController.js` use parameterized `pg` queries directly — no Mongoose, no Sequelize.
+2. **Auto-schema migration**: Backend runs `CREATE TABLE IF NOT EXISTS` on startup — zero config for reviewers.
+3. **JSONB for steps**: Stores the checklist array in a single column — no join table required.
+4. **GraphQL without Apollo Client**: Frontend uses plain `axios.post` with templated query strings — no heavy client library.
 5. **Debounced search + AbortController**: Prevents API flooding and race conditions on the frontend.
