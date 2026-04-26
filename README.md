@@ -36,7 +36,23 @@ This project implements the modern **MERN** stack, transitioning into a modern G
 
 ## Global Getting Started Guide
 
-### 1. The 1-Click Environment Setup (Dockerized)
+### 1. Configure Environments
+You will need to set up environment variables for both the frontend and backend based on the provided example files.
+
+**Backend (`/backend/.env`)**:
+Copy `/backend/.env.example` to `/backend/.env`. Insert your MongoDB connection URI (Atlas or Local).
+```env
+PORT=3000
+MONGO_URI=your_mongodb_connection_string
+```
+
+**Frontend (`/frontend/.env`)**:
+Copy `/frontend/.env.example` to `/frontend/.env`. This points the React app to your backend.
+```env
+VITE_API_URL=http://localhost:3000
+```
+
+### 2. The 1-Click Environment Setup (Dockerized)
 The easiest way to review this application is to spin up the Docker architecture natively:
 ```bash
 docker-compose up --build

@@ -28,8 +28,9 @@ backend/
 ## Setup & Testing Executions
 
 1. Resolve packages: `npm install`
-2. **Execute Automated Tests**: Run `npm test` to trigger the `jest` automated validation loops that systematically pound `utils/helpers.js` checking that edge-case checklist completions render mathematically accurate `status` calculations.
-3. Start natively: `npm run dev`
+2. **Environment**: Copy `.env.example` to `.env` and fill in your `MONGO_URI`.
+3. **Execute Automated Tests**: Run `npm test` to trigger the `jest` automated validation loops that systematically pound `utils/helpers.js` checking that edge-case checklist completions render mathematically accurate `status` calculations.
+4. Start natively: `npm run dev`
 
 ## API Design (GraphQL Base)
 

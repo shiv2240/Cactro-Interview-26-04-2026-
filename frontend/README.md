@@ -22,7 +22,7 @@ To prevent the client state from overwriting React with resolving data from asyn
 ## Getting Started
 
 1. Set up the dependencies: `npm install`
-2. Configure your Environment Variables: Check `.env` for `VITE_API_URL` pointing toward your containerization wrapper.
+2. Configure your Environment Variables: Check `.env.example`, copy it to `.env`, and ensure `VITE_API_URL` points toward your active backend.
 3. Start the Vite Dev Environment: `npm run dev`
 
 To build the optimized static asset package for deployment:
