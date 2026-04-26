@@ -7,16 +7,24 @@ const api = axios.create({
 });
 
 const executeGraphQL = async (query, variables = {}) => {
-  const { data } = await api.post('/graphql', {
-    query,
-    variables
-  });
+  try {
+    const { data } = await api.post('/graphql', {
+      query,
+      variables
+    });
 
-  if (data.errors) {
-    throw new Error(data.errors[0].message);
+    if (data.errors) {
+      throw new Error(data.errors[0].message);
+    }
+
+    return { data: data.data };
+  } catch (error) {
+    // If the error has a response from the server (like 429 Rate Limit)
+    if (error.response && error.response.data && error.response.data.error) {
+      throw new Error(error.response.data.error);
+    }
+    throw error;
   }
-
-  return { data: data.data };
 };
 
 export const getReleases = async (params = {}) => {

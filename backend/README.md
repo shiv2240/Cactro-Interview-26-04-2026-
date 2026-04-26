@@ -111,6 +111,17 @@ Tests in `__tests__/helpers.test.js` cover all edge cases for `calculateStatus()
 - Steps exist, none completed → `planned`
 - Some completed → `ongoing`
 - All completed → `done`
+```
+
+---
+
+## Security
+
+### Rate Limiting
+The API is protected by `express-rate-limit` to prevent brute-force attacks and API abuse:
+- **Default**: 100 requests per 15 minutes per IP.
+- **Applied to**: Both `/graphql` and `/api/*` endpoints.
+- **Headers**: Standard `RateLimit-*` headers are included in responses to inform clients of their remaining quota.
 
 ---
 

@@ -140,3 +140,4 @@ All requests go to `POST /graphql`.
 3. **JSONB for steps**: Stores the checklist array in a single column — no join table required.
 4. **GraphQL without Apollo Client**: Frontend uses plain `axios.post` with templated query strings — no heavy client library.
 5. **Debounced search + AbortController**: Prevents API flooding and race conditions on the frontend.
+6. **API Rate Limiting**: Implemented `express-rate-limit` on the backend to protect against brute-force and API abuse (100 req / 15 min).
