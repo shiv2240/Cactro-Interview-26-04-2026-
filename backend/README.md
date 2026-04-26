@@ -1,6 +1,8 @@
 # Backend - ReleaseCheck System Architecture
 
-This directory defines the core API mechanisms. Originally structured as pure MVC REST pathways, it has been massively upgraded into a dual-mode `express-graphql` node providing extreme payload flexibility to the attached React clients.
+**🚀 Live GraphQL Node**: [https://cactro-interview-26-04-2026.onrender.com/graphql](https://cactro-interview-26-04-2026.onrender.com/graphql)
+
+This directory defines the core API mechanisms. Originally structured as pure MVC REST pathways, it has been massively upgraded into a dual-mode `graphql-http` node providing extreme payload flexibility to the attached React clients.
 
 ## Structure
 

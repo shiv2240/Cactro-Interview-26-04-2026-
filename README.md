@@ -1,5 +1,8 @@
 # ReleaseCheck - Full-Stack Interview Project
 
+**🚀 Live Deployment**: [https://cactro-interview-26-04-2026.onrender.com](https://cactro-interview-26-04-2026.onrender.com)
+**💻 GitHub Repository**: [https://github.com/shiv2240/Cactro-Interview-26-04-2026-](https://github.com/shiv2240/Cactro-Interview-26-04-2026-)
+
 A comprehensive, production-ready web application designed to help engineering teams track software releases using predefined checklist steps. Built natively as a Single Page Application (SPA), it focuses on high performance, clean architecture, and exceptional user experience.
 
 Most importantly, this repository completely satisfies all **Must-Have** and **Nice-to-Have** assignment criteria (including GraphQL, Jest Automations, Docker encapsulation).

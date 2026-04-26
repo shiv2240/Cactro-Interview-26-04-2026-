@@ -57,7 +57,7 @@ const root = {
 
     if (search) query.name = { $regex: search, $options: 'i' };
     if (status && status !== 'All') query.status = status.toLowerCase();
-    
+
     if (date) {
       const startOfDay = new Date(date);
       startOfDay.setUTCHours(0, 0, 0, 0);
@@ -76,7 +76,7 @@ const root = {
     return {
       data: releases.map(r => {
         r.id = r._id.toString(); // Map _id for GraphQL
-        if(r.release_date) r.release_date = r.release_date.toISOString();
+        if (r.release_date) r.release_date = r.release_date.toISOString();
         return r;
       }),
       metadata: {
@@ -104,7 +104,7 @@ const root = {
       steps: getPredefinedChecklist(),
       status: 'planned'
     });
-    
+
     const saved = await newRelease.save();
     saved.id = saved._id.toString();
     saved.release_date = saved.release_date.toISOString();
@@ -114,7 +114,7 @@ const root = {
   updateRelease: async (args) => {
     const { id, name, release_date, additional_info, steps } = args;
     const updates = { name, release_date, additional_info, steps };
-    
+
     if (steps) {
       updates.status = calculateStatus(steps);
     }

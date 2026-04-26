@@ -11,11 +11,11 @@ const executeGraphQL = async (query, variables = {}) => {
     query,
     variables
   });
-  
+
   if (data.errors) {
     throw new Error(data.errors[0].message);
   }
-  
+
   return { data: data.data };
 };
 
@@ -35,7 +35,7 @@ export const getReleases = async (params = {}) => {
       }
     }
   `;
-  
+
   const response = await executeGraphQL(query, params);
   // Match original REST shape returning { data: { data: [...], metadata: {...} } } mapped directly
   return { data: response.data.releases };
@@ -83,7 +83,7 @@ export const updateRelease = async (id, data) => {
       }
     }
   `;
-  
+
   // Format steps array cleanly for graphQL inputs, stripping __typename if apollo was ever used
   const steps = data.steps ? data.steps.map(s => ({
     id: parseInt(s.id),
