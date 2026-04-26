@@ -135,22 +135,8 @@ const ReleaseList = () => {
         </Link>
       </div>
 
-      <div
-        className="filters-bar"
-        style={{
-          display: "flex",
-          gap: "1rem",
-          padding: "1rem 1.5rem",
-          backgroundColor: "#f7fafc",
-          borderBottom: "1px solid var(--border)",
-          alignItems: "center",
-          flexWrap: "wrap",
-        }}
-      >
-        <div
-          className="filter-group"
-          style={{ position: "relative", flex: "1", minWidth: "200px" }}
-        >
+      <div className="filters-bar">
+        <div className="filter-group filter-group--search">
           <Search
             size={16}
             style={{
@@ -240,6 +226,7 @@ const ReleaseList = () => {
         )}
       </div>
 
+      <div className="table-scroll-wrapper">
       <table className="data-table">
         <thead>
           <tr>
@@ -305,34 +292,20 @@ const ReleaseList = () => {
 
               return (
                 <tr key={release.id}>
-                  <td>{release.name}</td>
-                  <td>{formattedDate}</td>
-                  <td>{formattedStatus}</td>
-                  <td style={{ width: "80px" }}>
+                  <td data-label="Release">{release.name}</td>
+                  <td data-label="Date">{formattedDate}</td>
+                  <td data-label="Status">{formattedStatus}</td>
+                  <td className="td-actions col-actions-delete" colSpan={2}>
                     <button
                       onClick={() => navigate(`/releases/${release.id}`)}
                       className="btn btn-icon"
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.25rem",
-                        fontSize: "0.875rem",
-                      }}
                     >
                       View <Eye size={16} />
                     </button>
-                  </td>
-                  <td style={{ width: "100px" }}>
                     <button
                       onClick={() => handleDelete(release.id)}
                       className="btn btn-icon"
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.25rem",
-                        fontSize: "0.875rem",
-                        color: "var(--danger)",
-                      }}
+                      style={{ color: "var(--danger)" }}
                     >
                       Delete <Trash2 size={16} />
                     </button>
@@ -343,18 +316,10 @@ const ReleaseList = () => {
           )}
         </tbody>
       </table>
+      </div> {/* table-scroll-wrapper */}
 
       {totalPages > 1 && (
-        <div
-          className="pagination-bar"
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: "1rem 1.5rem",
-            borderTop: "1px solid var(--border)",
-          }}
-        >
+        <div className="pagination-bar">
           <span style={{ fontSize: "0.875rem", color: "var(--text-muted)" }}>
             Page {page} of {totalPages}
           </span>
@@ -364,14 +329,14 @@ const ReleaseList = () => {
               disabled={page === 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
             >
-              Previous
+              ← Prev
             </button>
             <button
               className="btn"
               disabled={page === totalPages}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             >
-              Next
+              Next →
             </button>
           </div>
         </div>
