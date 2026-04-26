@@ -159,6 +159,7 @@ const ReleaseList = () => {
               top: "50%",
               transform: "translateY(-50%)",
               color: "var(--text-muted)",
+              pointerEvents: "none",
             }}
           />
           <input
@@ -167,8 +168,37 @@ const ReleaseList = () => {
             placeholder="Search release name..."
             value={search}
             onChange={handleSearchChange}
-            style={{ paddingLeft: "2.5rem" }}
+            style={{ paddingLeft: "2.5rem", paddingRight: search ? "2.25rem" : "0.75rem" }}
           />
+          {search && (
+            <button
+              onClick={() => {
+                setSearch("");
+                if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+                setPage(1);
+                fetchReleases(1, "", status, date, sortDir);
+              }}
+              style={{
+                position: "absolute",
+                right: "0.6rem",
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: "var(--text-muted)",
+                fontSize: "1rem",
+                lineHeight: 1,
+                padding: "0",
+                display: "flex",
+                alignItems: "center",
+              }}
+              title="Clear search"
+              aria-label="Clear search"
+            >
+              ✕
+            </button>
+          )}
         </div>
 
         <div
@@ -218,20 +248,17 @@ const ReleaseList = () => {
               onClick={() =>
                 setSortDir((prev) => (prev === "desc" ? "asc" : "desc"))
               }
-              style={{
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "4px",
-              }}
+              style={{ cursor: "pointer", userSelect: "none", whiteSpace: "nowrap" }}
               title="Toggle Date Sort"
             >
-              Date{" "}
-              {sortDir === "desc" ? (
-                <ArrowDown size={14} color="var(--primary)" />
-              ) : (
-                <ArrowUp size={14} color="var(--primary)" />
-              )}
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                Date{" "}
+                {sortDir === "desc" ? (
+                  <ArrowDown size={14} color="var(--primary)" />
+                ) : (
+                  <ArrowUp size={14} color="var(--primary)" />
+                )}
+              </span>
             </th>
             <th>Status</th>
             <th></th>
