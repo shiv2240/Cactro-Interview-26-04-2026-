@@ -1,34 +1,66 @@
-# Frontend - ReleaseCheck UI
+# Frontend — ReleaseCheck UI
 
-**🚀 Live Website (Netlify)**: [https://cactro-releasecheck.netlify.app/](https://cactro-releasecheck.netlify.app/)
+**🚀 Live App (Netlify)**: [https://cactro-releasecheck.netlify.app/](https://cactro-releasecheck.netlify.app/)
 
-This directory houses the React application responsible for the client interface. It has been strictly engineered to communicate optimally with sophisticated, string-driven logic layers via Vite compiling.
+React + Vite Single Page Application for managing software release checklists. Communicates with the backend exclusively via GraphQL.
 
-## Design Concept & Vanilla CSS
+---
 
-Crucially, **no external component libraries** (like Material UI or Bootstrap) and **no utility frameworks** (like TailwindCSS) were utilized. 
+## Directory Structure
 
-The aesthetic is entirely manually crafted via Vanilla CSS (`src/index.css`) utilizing CSS Variables (Custom properties) extending an elegant, crisp, light-mode palette. This guarantees maximum flexibility over the design syntax and proves raw competency with standard web layout schemas (flexbox & grids).
-
-## Core React Features implemented
-
-### 1. GraphQL Network Translation
-While massive projects mandate `Apollo Client`, incorporating massive global state libraries for a single CRUD architecture is overkill. Instead, `src/api.js` explicitly defines exact parameterised GraphQL strings (`mutations/queries`) that are elegantly attached onto standardized `axios.post` payload bodies pointing toward `/graphql`. This guarantees that the SPA remains ultra-lightweight while unlocking complex GraphQL manipulation rules.
-
-### 2. High-Performance Debouncing
-Because the search-filter queries the backend rather than an already loaded local state object (to enforce pagination memory protections), we utilize `setTimeout` bindings layered behind a `useRef` to catch and debounce rapid keystrokes within the `ReleaseList` Search bar. This is a crucial UX standard saving hundreds of DOM renders.
-
-### 3. The `AbortController` Integration
-To prevent the client state from overwriting React with resolving data from asynchronous latency spikes, `AbortController` forces standard XHR/Fetch interruptions strictly resolving the most recent network intent while purging older inflight requests. 
-
-## Getting Started
-
-1. Set up the dependencies: `npm install`
-2. Configure your Environment Variables: Check `.env.example`, copy it to `.env`, and ensure `VITE_API_URL` points toward your active backend.
-3. Start the Vite Dev Environment: `npm run dev`
-
-To build the optimized static asset package for deployment:
-```bash
-npm run build
+```text
+frontend/
+├── public/
+│   └── favicon.svg
+├── src/
+│   ├── components/
+│   │   ├── ReleaseList.jsx   # Main list view: search, filter, sort, paginate
+│   │   └── ReleaseEditor.jsx # Create / edit release form with validation
+│   ├── api.js                # All GraphQL queries & mutations via Axios
+│   ├── App.jsx               # Router setup (React Router v6)
+│   ├── index.css             # Global Vanilla CSS design system
+│   └── main.jsx              # Vite entry point
+├── .env.example              # Environment variable template
+└── vite.config.js
 ```
-Vite will output perfectly minified assets into your `/dist` folder. Simply point servers (like NGINX, Vercel, or AWS S3) to this directory and serve effortlessly!
+
+---
+
+## Setup
+
+### 1. Install dependencies
+```bash
+npm install
+```
+
+### 2. Configure environment
+Copy `.env.example` to `.env`:
+```env
+VITE_API_URL=http://localhost:3000
+```
+> Point this at your backend URL (local or deployed on Render).
+
+### 3. Run
+```bash
+npm run dev      # Development server
+npm run build    # Production build → /dist
+```
+
+---
+
+## Key Implementation Details
+
+### GraphQL via Axios (`src/api.js`)
+No Apollo Client — all GraphQL calls are plain `axios.post('/graphql', { query, variables })` calls. This keeps the bundle lightweight while still using the full power of GraphQL.
+
+### Debounced Search
+The search input uses a 500ms `setTimeout` debounce via `useRef` to avoid hammering the backend on every keystroke.
+
+### AbortController
+Each fetch call uses an `AbortController` to cancel in-flight requests when a new one is triggered, preventing stale data from overwriting current state.
+
+### Form Validation
+`ReleaseEditor.jsx` has inline validation — required fields are marked with `*` and clear error messages are shown inline without browser `alert()` popups.
+
+### Bulletproof Date Parsing
+Dates from the backend are handled with a safe parser that handles both ISO strings and UNIX epoch timestamps, preventing "Invalid Date" rendering.

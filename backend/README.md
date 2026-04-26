@@ -1,59 +1,107 @@
-# Backend - ReleaseCheck System Architecture
+# Backend — ReleaseCheck API
 
-**🚀 Live GraphQL Node**: [https://cactro-interview-26-04-2026.onrender.com/graphql](https://cactro-interview-26-04-2026.onrender.com/graphql)
+**⚡ Live GraphQL Endpoint (Render)**: [https://cactro-interview-26-04-2026.onrender.com/graphql](https://cactro-interview-26-04-2026.onrender.com/graphql)
 
-This directory defines the core API mechanisms. Originally structured as pure MVC REST pathways, it has been massively upgraded into a dual-mode `graphql-http` node providing extreme payload flexibility to the attached React clients.
+Node.js + Express backend serving a **GraphQL API** backed by **PostgreSQL** (`pg`). Implements MVC architecture, automated Jest testing, and Docker support.
 
-## Structure
+---
+
+## Directory Structure
 
 ```text
 backend/
-├── __tests__/                
-│   └── helpers.test.js       # Algorithmic regressions parsed through Jest
+├── __tests__/
+│   └── helpers.test.js       # Jest tests for status calculation logic
 ├── config/
-│   └── db.js                 # Bootstraps the MongoDB/Mongoose connection pool.
+│   └── db.js                 # PostgreSQL pool connection + auto-migration (CREATE TABLE IF NOT EXISTS)
 ├── controllers/
-│   └── releaseController.js  # Original REST fallback hooks.
+│   └── releaseController.js  # Legacy REST endpoint handlers (fallback)
 ├── graphql/
-│   └── schema.js             # Core implementation defining exact GraphQL Mutations & Queries
+│   └── schema.js             # GraphQL schema + root resolvers (CRUD, filtering, sorting)
 ├── models/
-│   └── Release.js            # MongoDB Collection Schema tightly indexed for speed.
+│   └── Release.js            # PostgreSQL DAO — mirrors Mongoose API using native pg queries
 ├── routes/
-│   └── releaseRoutes.js      # Mounts the legacy REST fallbacks.
+│   └── releaseRoutes.js      # Mounts REST fallback routes at /api/releases
 ├── utils/
-│   └── helpers.js            # Extracted functions for status calculations. Protected by Jest.
-├── Dockerfile                # Defines the Alpine linux runtime build instructions.
-├── .env                      # Environment config 
-├── index.js                  # Entry point, mounts CORS, JSON parsers, and App Routes.
+│   └── helpers.js            # calculateStatus() + getPredefinedChecklist() — Jest-tested
+├── Dockerfile                # Alpine-based Docker build
+├── .env.example              # Environment variable template
+└── index.js                  # App entry point — wires up CORS, GraphQL, REST, DB connection
 ```
 
-## Setup & Testing Executions
+---
 
-1. Resolve packages: `npm install`
-2. **Environment**: Copy `.env.example` to `.env` and fill in your `MONGO_URI`.
-3. **Execute Automated Tests**: Run `npm test` to trigger the `jest` automated validation loops that systematically pound `utils/helpers.js` checking that edge-case checklist completions render mathematically accurate `status` calculations.
-4. Start natively: `npm run dev`
+## Setup
 
-## API Design (GraphQL Base)
+### 1. Install dependencies
+```bash
+npm install
+```
 
-The API resolves strictly against `POST /graphql` executing structured schema requests.
+### 2. Configure environment
+Copy `.env.example` to `.env` and fill in your PostgreSQL credentials:
+```env
+PORT=3000
+DB_HOST=your_host
+DB_PORT=5432
+DB_USER=your_user
+DB_PASSWORD=your_password
+DB_NAME=your_database
+```
+> Alternatively, you can provide a single `DATABASE_URL` connection string — the app handles both formats.
+
+### 3. Run
+```bash
+npm run dev        # Development (hot-reload via --watch)
+npm start          # Production
+npm test           # Run Jest test suite
+```
+
+> **Note:** The database tables and indexes are created automatically at startup via `CREATE TABLE IF NOT EXISTS`. No manual migrations required.
+
+---
+
+## GraphQL API (`POST /graphql`)
 
 ### Queries
 
-#### `Query.releases(page, limit, search, status, date)`
-Executes parallel B-tree indexed Mongoose lookups validating Regex `search` statements mapping to paginated yields natively.
-**Returns**: `ReleasesPayload` ({ data, metadata: { totalPages } })
+#### `releases(page, limit, search, status, date, sortDir)`
+Returns a paginated list of releases with optional filtering and sorting.
+- **Returns**: `ReleasesPayload { data: [Release], metadata: { totalPages } }`
 
-#### `Query.release(id)`
-Executes instant lookup based upon validated Mongoose `_id` strings.
+#### `release(id)`
+Returns a single release by ID, including all checklist steps.
 
 ### Mutations
 
-#### `Mutation.createRelease(name, release_date, additional_info)`
-Automatically parses the `utils/helpers.js` static 7-point checklist into an array format internally mapping `status = planned`. Returns the native `Release` schema ID.
+#### `createRelease(name!, release_date!, additional_info)`
+Creates a new release with the predefined 7-step checklist. Status auto-set to `planned`.
 
-#### `Mutation.updateRelease(id, name, release_date, additional_info, status, steps)`
-Intercepts and updates arrays natively. Extremely intelligent computation wrapper recalculates the exact `status` value dynamically ensuring client manipulation cannot artificially generate a false 'Done' parameter maliciously.
+#### `updateRelease(id!, name, release_date, additional_info, status, steps)`
+Updates a release. If `steps` are provided, `status` is recalculated automatically via `calculateStatus()`.
 
-#### `Mutation.deleteRelease(id)`
-Drops the release safely from cluster records.
+#### `deleteRelease(id!)`
+Permanently deletes a release. Returns `Boolean`.
+
+---
+
+## Database Schema
+
+PostgreSQL table `releases`, created automatically at startup:
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `SERIAL PRIMARY KEY` | Auto-increment integer |
+| `name` | `VARCHAR(255) NOT NULL` | Indexed |
+| `release_date` | `TIMESTAMP NOT NULL` | Indexed |
+| `additional_info` | `TEXT` | Optional |
+| `status` | `VARCHAR(50)` | `planned` / `ongoing` / `done`. Indexed |
+| `steps` | `JSONB` | Array of `{ id, name, completed }` objects |
+
+---
+
+## Running Tests
+```bash
+npm test
+```
+The Jest suite in `__tests__/helpers.test.js` validates the `calculateStatus()` logic across all edge cases (no steps, none completed, some completed, all completed).

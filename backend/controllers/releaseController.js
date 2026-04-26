@@ -1,4 +1,4 @@
-const Release = require('../models/Release');
+const { query: pgQuery } = require('../config/db');
 const { getPredefinedChecklist, calculateStatus } = require('../utils/helpers');
 
 // @desc    Get all releases
@@ -7,45 +7,47 @@ const getReleases = async (req, res) => {
   try {
     const { page = 1, limit = 10, search, status, date } = req.query;
 
-    const query = {};
+    const whereClauses = [];
+    const values = [];
+    let i = 1;
 
-    // Search by name (case insensitive regex)
     if (search) {
-      query.name = { $regex: search, $options: 'i' };
+      whereClauses.push(`name ILIKE $${i++}`);
+      values.push(`%${search}%`);
     }
-
-    // Filter by status (exact match)
     if (status && status !== 'All') {
-      query.status = status.toLowerCase();
+      whereClauses.push(`status = $${i++}`);
+      values.push(status.toLowerCase());
     }
-
-    // Filter by date (exact match for the day)
     if (date) {
       const startOfDay = new Date(date);
       startOfDay.setUTCHours(0, 0, 0, 0);
       const endOfDay = new Date(date);
       endOfDay.setUTCHours(23, 59, 59, 999);
-      query.release_date = { $gte: startOfDay, $lte: endOfDay };
+      whereClauses.push(`release_date >= $${i++} AND release_date <= $${i++}`);
+      values.push(startOfDay, endOfDay);
     }
 
+    const where = whereClauses.length ? `WHERE ${whereClauses.join(' AND ')}` : '';
     const pageNum = parseInt(page, 10);
     const limitNum = parseInt(limit, 10);
-    const skip = (pageNum - 1) * limitNum;
+    const offset = (pageNum - 1) * limitNum;
 
-    // Execute queries in parallel
-    const [releases, total] = await Promise.all([
-      Release.find(query).sort({ release_date: -1 }).skip(skip).limit(limitNum),
-      Release.countDocuments(query)
+    const [dataResult, countResult] = await Promise.all([
+      pgQuery(`SELECT * FROM releases ${where} ORDER BY release_date DESC LIMIT $${i++} OFFSET $${i++}`, [...values, limitNum, offset]),
+      pgQuery(`SELECT COUNT(*) FROM releases ${where}`, values),
     ]);
 
+    const total = parseInt(countResult.rows[0].count, 10);
+
     res.json({
-      data: releases,
+      data: dataResult.rows,
       metadata: {
         total,
         page: pageNum,
         totalPages: Math.ceil(total / limitNum),
-        limit: limitNum
-      }
+        limit: limitNum,
+      },
     });
   } catch (err) {
     console.error(err);
@@ -57,10 +59,9 @@ const getReleases = async (req, res) => {
 // @route   GET /api/releases/:id
 const getReleaseById = async (req, res) => {
   try {
-    const { id } = req.params;
-    const release = await Release.findById(id);
-    if (!release) return res.status(404).json({ error: 'Not found' });
-    res.json(release);
+    const result = await pgQuery(`SELECT * FROM releases WHERE id = $1`, [req.params.id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Not found' });
+    res.json(result.rows[0]);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to fetch release' });
@@ -75,16 +76,13 @@ const createRelease = async (req, res) => {
     const steps = getPredefinedChecklist();
     const status = calculateStatus(steps);
 
-    const release = new Release({
-      name,
-      release_date,
-      additional_info,
-      status,
-      steps
-    });
+    const result = await pgQuery(
+      `INSERT INTO releases (name, release_date, additional_info, status, steps)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [name, release_date, additional_info || '', status, JSON.stringify(steps)]
+    );
 
-    const savedRelease = await release.save();
-    res.status(201).json(savedRelease);
+    res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to create release' });
@@ -97,18 +95,16 @@ const updateRelease = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, release_date, additional_info, steps } = req.body;
-
-    // Calculate new status based on updated steps
     const status = calculateStatus(steps);
 
-    const updatedRelease = await Release.findByIdAndUpdate(
-      id,
-      { name, release_date, additional_info, status, steps },
-      { returnDocument: 'after', runValidators: true }
+    const result = await pgQuery(
+      `UPDATE releases SET name=$1, release_date=$2, additional_info=$3, status=$4, steps=$5
+       WHERE id=$6 RETURNING *`,
+      [name, release_date, additional_info || '', status, JSON.stringify(steps), id]
     );
 
-    if (!updatedRelease) return res.status(404).json({ error: 'Not found' });
-    res.json(updatedRelease);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Not found' });
+    res.json(result.rows[0]);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to update release' });
@@ -119,9 +115,8 @@ const updateRelease = async (req, res) => {
 // @route   DELETE /api/releases/:id
 const deleteRelease = async (req, res) => {
   try {
-    const { id } = req.params;
-    const deletedRelease = await Release.findByIdAndDelete(id);
-    if (!deletedRelease) return res.status(404).json({ error: 'Not found' });
+    const result = await pgQuery(`DELETE FROM releases WHERE id = $1 RETURNING id`, [req.params.id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Not found' });
     res.json({ message: 'Release deleted' });
   } catch (err) {
     console.error(err);
@@ -129,10 +124,4 @@ const deleteRelease = async (req, res) => {
   }
 };
 
-module.exports = {
-  getReleases,
-  getReleaseById,
-  createRelease,
-  updateRelease,
-  deleteRelease
-};
+module.exports = { getReleases, getReleaseById, createRelease, updateRelease, deleteRelease };
