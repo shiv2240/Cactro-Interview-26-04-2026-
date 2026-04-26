@@ -1,6 +1,7 @@
 # ReleaseCheck - Full-Stack Interview Project
 
-**🚀 Live Deployment**: [https://cactro-interview-26-04-2026.onrender.com](https://cactro-interview-26-04-2026.onrender.com)
+**🚀 Live Frontend (Netlify)**: [https://cactro-releasecheck.netlify.app/](https://cactro-releasecheck.netlify.app/)
+**⚡ Live Backend (Render)**: [https://cactro-interview-26-04-2026.onrender.com/graphql](https://cactro-interview-26-04-2026.onrender.com/graphql)
 **💻 GitHub Repository**: [https://github.com/shiv2240/Cactro-Interview-26-04-2026-](https://github.com/shiv2240/Cactro-Interview-26-04-2026-)
 
 A comprehensive, production-ready web application designed to help engineering teams track software releases using predefined checklist steps. Built natively as a Single Page Application (SPA), it focuses on high performance, clean architecture, and exceptional user experience.
