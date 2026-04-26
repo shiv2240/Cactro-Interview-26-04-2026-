@@ -49,7 +49,7 @@ This spins up:
 
 The API will be available at `http://localhost:3000/graphql`.
 
-> You can override credentials via environment variables or a `.env` file in the project root:
+> You can override the default database credentials for the Docker environment via a `.env` file in the **project root**:
 > ```env
 > DB_USER=shiv
 > DB_PASSWORD=StrongPassword123!
