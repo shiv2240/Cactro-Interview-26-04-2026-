@@ -32,7 +32,7 @@ const schema = buildSchema(`
   }
 
   type Query {
-    releases(page: Int, limit: Int, search: String, status: String, date: String): ReleasesPayload
+    releases(page: Int, limit: Int, search: String, status: String, date: String, sortDir: String): ReleasesPayload
     release(id: ID!): Release
   }
 
@@ -52,7 +52,7 @@ const schema = buildSchema(`
 // The root provides a resolver function for each API endpoint
 const root = {
   releases: async (args) => {
-    const { page = 1, limit = 10, search, status, date } = args;
+    const { page = 1, limit = 10, search, status, date, sortDir = 'desc' } = args;
     const query = {};
 
     if (search) query.name = { $regex: search, $options: 'i' };
@@ -67,9 +67,10 @@ const root = {
     }
 
     const skip = (page - 1) * limit;
+    const sortValue = sortDir === 'asc' ? 1 : -1;
 
     const [releases, total] = await Promise.all([
-      Release.find(query).sort({ release_date: -1 }).skip(skip).limit(limit),
+      Release.find(query).sort({ release_date: sortValue }).skip(skip).limit(limit),
       Release.countDocuments(query)
     ]);
 

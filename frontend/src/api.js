@@ -21,8 +21,8 @@ const executeGraphQL = async (query, variables = {}) => {
 
 export const getReleases = async (params = {}) => {
   const query = `
-    query GetReleases($page: Int, $limit: Int, $search: String, $status: String, $date: String) {
-      releases(page: $page, limit: $limit, search: $search, status: $status, date: $date) {
+    query GetReleases($page: Int, $limit: Int, $search: String, $status: String, $date: String, $sortDir: String) {
+      releases(page: $page, limit: $limit, search: $search, status: $status, date: $date, sortDir: $sortDir) {
         data {
           id
           name

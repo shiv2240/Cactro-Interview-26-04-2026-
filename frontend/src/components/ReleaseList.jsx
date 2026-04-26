@@ -44,7 +44,7 @@ const ReleaseList = () => {
     currentSearch,
     currentStatus,
     currentDate,
-    currentSortDir,
+    currentSortDir
   ) => {
     setLoading(true);
 
