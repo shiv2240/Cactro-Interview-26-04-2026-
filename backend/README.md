@@ -40,14 +40,16 @@ npm install
 Copy `.env.example` to `.env`:
 ```env
 PORT=3000
+
+# Connection String (Recommended)
+DATABASE_URL=postgresql://user:password@host:5432/dbname?sslmode=require
+
+# OR Individual Params
 DB_HOST=localhost
 DB_PORT=5432
 DB_USER=your_user
 DB_PASSWORD=your_password
 DB_NAME=your_database
-
-# Or use a single connection string:
-# DATABASE_URL=postgresql://user:password@host:5432/dbname?sslmode=require
 ```
 
 ### 3. Run

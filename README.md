@@ -82,14 +82,16 @@ npm run dev
 ### Backend (`backend/.env`)
 ```env
 PORT=3000
+
+# Connection String (Recommended)
+DATABASE_URL=postgresql://user:password@host:5432/dbname?sslmode=require
+
+# OR Individual Params
 DB_HOST=localhost
 DB_PORT=5432
 DB_USER=your_user
 DB_PASSWORD=your_password
 DB_NAME=your_database
-
-# Alternatively, use a single connection string:
-# DATABASE_URL=postgresql://user:password@host:5432/dbname?sslmode=require
 ```
 
 ### Frontend (`frontend/.env`)

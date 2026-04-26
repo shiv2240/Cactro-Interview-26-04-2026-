@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "c1f8d9b0-a54f-4d3b-85e3-4b928c0d9a6c",
 		"name": "ReleaseCheck APIs",
-		"description": "Production-ready APIs containing both RESTful architectures and the 'Nice-to-Have' GraphQL layer endpoints.",
+		"description": "Production-ready APIs containing both RESTful architectures and the 'Nice-to-Have' GraphQL layer endpoints. These APIs support PostgreSQL backend with raw SQL queries.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -10,7 +10,7 @@
 			"name": "GraphQL API Endpoints",
 			"item": [
 				{
-					"name": "1. Get Releases (GraphQL)",
+					"name": "1. Get Releases (GraphQL - Full Filters)",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -22,8 +22,8 @@
 						"body": {
 							"mode": "graphql",
 							"graphql": {
-								"query": "query GetReleases($page: Int, $limit: Int) {\n  releases(page: $page, limit: $limit) {\n    data {\n      id\n      name\n      release_date\n      status\n    }\n    metadata {\n      totalPages\n      total\n    }\n  }\n}",
-								"variables": "{\n  \"page\": 1,\n  \"limit\": 10\n}"
+								"query": "query GetReleases($page: Int, $limit: Int, $search: String, $status: String, $date: String, $sortDir: String) {\n  releases(page: $page, limit: $limit, search: $search, status: $status, date: $date, sortDir: $sortDir) {\n    data {\n      id\n      name\n      release_date\n      status\n    }\n    metadata {\n      totalPages\n      total\n      page\n      limit\n    }\n  }\n}",
+								"variables": "{\n  \"page\": 1,\n  \"limit\": 10,\n  \"search\": \"\",\n  \"status\": \"All\",\n  \"date\": \"\",\n  \"sortDir\": \"desc\"\n}"
 							}
 						},
 						"url": {
@@ -52,7 +52,7 @@
 							"mode": "graphql",
 							"graphql": {
 								"query": "mutation CreateRelease($name: String!, $release_date: String!, $additional_info: String) {\n  createRelease(name: $name, release_date: $release_date, additional_info: $additional_info) {\n    id\n    name\n    status\n  }\n}",
-								"variables": "{\n  \"name\": \"Version 3.0.0 (GraphQL)\",\n  \"release_date\": \"2023-12-15\",\n  \"additional_info\": \"Generated via Apollo payload match\"\n}"
+								"variables": "{\n  \"name\": \"Postman v1.0.0\",\n  \"release_date\": \"2026-04-26\",\n  \"additional_info\": \"Generated via Postman to test PostgreSQL integration\"\n}"
 							}
 						},
 						"url": {
@@ -80,7 +80,7 @@
 						"body": {
 							"mode": "graphql",
 							"graphql": {
-								"query": "query GetRelease($id: ID!) {\n  release(id: $id) {\n    id\n    name\n    release_date\n    status\n    steps {\n      id\n      name\n      completed\n    }\n  }\n}",
+								"query": "query GetRelease($id: ID!) {\n  release(id: $id) {\n    id\n    name\n    release_date\n    status\n    additional_info\n    steps {\n      id\n      name\n      completed\n    }\n  }\n}",
 								"variables": "{\n  \"id\": \"{{release_id}}\"\n}"
 							}
 						},
@@ -97,7 +97,36 @@
 					"response": []
 				},
 				{
-					"name": "4. Delete Release (GraphQL)",
+					"name": "4. Update Release (GraphQL - Toggle Steps)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation UpdateRelease($id: ID!, $status: String, $steps: [StepInput]) {\n  updateRelease(id: $id, status: $status, steps: $steps) {\n    id\n    status\n  }\n}",
+								"variables": "{\n  \"id\": \"{{release_id}}\",\n  \"steps\": [\n    { \"id\": 1, \"name\": \"All relevant GitHub pull requests have been merged\", \"completed\": true },\n    { \"id\": 2, \"name\": \"CHANGELOG.md files have been updated\", \"completed\": true },\n    { \"id\": 3, \"name\": \"All tests are passing\", \"completed\": false },\n    { \"id\": 4, \"name\": \"Releases in GitHub created\", \"completed\": false },\n    { \"id\": 5, \"name\": \"Deployed in demo\", \"completed\": false },\n    { \"id\": 6, \"name\": \"Tested thoroughly in demo\", \"completed\": false },\n    { \"id\": 7, \"name\": \"Deployed in production\", \"completed\": false }\n  ]\n}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "5. Delete Release (GraphQL)",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -128,7 +157,7 @@
 			]
 		},
 		{
-			"name": "Standard REST APIs",
+			"name": "Legacy REST APIs",
 			"item": [
 				{
 					"name": "Get All Releases (REST)",
@@ -157,33 +186,6 @@
 						}
 					},
 					"response": []
-				},
-				{
-					"name": "Create Release (REST)",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"name\": \"Version 2.5 (REST Payload)\",\n    \"release_date\": \"2023-11-20\",\n    \"additional_info\": \"We are leaving REST running for legacy support fallback.\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/releases",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"releases"
-							]
-						}
-					},
-					"response": []
 				}
 			]
 		}
@@ -195,7 +197,7 @@
 		},
 		{
 			"key": "release_id",
-			"value": "ENTER_AN_ID_FROM_CREATION_HERE_TO_TEST"
+			"value": "1"
 		}
 	]
 }
