@@ -1,0 +1,201 @@
+{
+	"info": {
+		"_postman_id": "c1f8d9b0-a54f-4d3b-85e3-4b928c0d9a6c",
+		"name": "ReleaseCheck APIs",
+		"description": "Production-ready APIs containing both RESTful architectures and the 'Nice-to-Have' GraphQL layer endpoints.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "GraphQL API Endpoints",
+			"item": [
+				{
+					"name": "1. Get Releases (GraphQL)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query GetReleases($page: Int, $limit: Int) {\n  releases(page: $page, limit: $limit) {\n    data {\n      id\n      name\n      release_date\n      status\n    }\n    metadata {\n      totalPages\n      total\n    }\n  }\n}",
+								"variables": "{\n  \"page\": 1,\n  \"limit\": 10\n}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2. Create Release (GraphQL)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation CreateRelease($name: String!, $release_date: String!, $additional_info: String) {\n  createRelease(name: $name, release_date: $release_date, additional_info: $additional_info) {\n    id\n    name\n    status\n  }\n}",
+								"variables": "{\n  \"name\": \"Version 3.0.0 (GraphQL)\",\n  \"release_date\": \"2023-12-15\",\n  \"additional_info\": \"Generated via Apollo payload match\"\n}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3. Get Single Release (GraphQL)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query GetRelease($id: ID!) {\n  release(id: $id) {\n    id\n    name\n    release_date\n    status\n    steps {\n      id\n      name\n      completed\n    }\n  }\n}",
+								"variables": "{\n  \"id\": \"{{release_id}}\"\n}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4. Delete Release (GraphQL)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation DeleteRelease($id: ID!) {\n  deleteRelease(id: $id)\n}",
+								"variables": "{\n  \"id\": \"{{release_id}}\"\n}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Standard REST APIs",
+			"item": [
+				{
+					"name": "Get All Releases (REST)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/releases?page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"releases"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Release (REST)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Version 2.5 (REST Payload)\",\n    \"release_date\": \"2023-11-20\",\n    \"additional_info\": \"We are leaving REST running for legacy support fallback.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/releases",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"releases"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000"
+		},
+		{
+			"key": "release_id",
+			"value": "ENTER_AN_ID_FROM_CREATION_HERE_TO_TEST"
+		}
+	]
+}
