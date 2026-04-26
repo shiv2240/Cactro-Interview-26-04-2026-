@@ -31,6 +31,7 @@ export const getReleases = async (params = {}) => {
         }
         metadata {
           totalPages
+          total
         }
       }
     }

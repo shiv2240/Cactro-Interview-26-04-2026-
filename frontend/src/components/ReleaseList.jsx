@@ -18,6 +18,7 @@ const ReleaseList = () => {
   // Pagination & Filter State
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
   const limit = 10;
 
   const [search, setSearch] = useState("");
@@ -44,7 +45,7 @@ const ReleaseList = () => {
     currentSearch,
     currentStatus,
     currentDate,
-    currentSortDir
+    currentSortDir,
   ) => {
     setLoading(true);
 
@@ -63,9 +64,10 @@ const ReleaseList = () => {
         date: currentDate,
         sortDir: currentSortDir,
       });
-      // The backend returns { data: [...], metadata: { totalPages } }
+      // The backend returns { data: [...], metadata: { totalPages, total } }
       setReleases(data.data);
       setTotalPages(data.metadata.totalPages || 1);
+      setTotal(data.metadata.total || 0);
     } catch (error) {
       if (error.code !== "ERR_CANCELED" && error.name !== "CanceledError") {
         console.error("Failed to fetch releases", error);
@@ -127,14 +129,13 @@ const ReleaseList = () => {
             className="breadcrumb-link"
             style={{ textDecoration: "underline", cursor: "pointer" }}
           >
-            All releases
+            All releases ({total})
           </span>
         </div>
         <Link to="/new" className="btn btn-primary">
           New release <PlusCircle size={16} />
         </Link>
       </div>
-
       <div className="filters-bar">
         <div className="filter-group filter-group--search">
           <Search
@@ -154,13 +155,17 @@ const ReleaseList = () => {
             placeholder="Search release name..."
             value={search}
             onChange={handleSearchChange}
-            style={{ paddingLeft: "2.5rem", paddingRight: search ? "2.25rem" : "0.75rem" }}
+            style={{
+              paddingLeft: "2.5rem",
+              paddingRight: search ? "2.25rem" : "0.75rem",
+            }}
           />
           {search && (
             <button
               onClick={() => {
                 setSearch("");
-                if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+                if (debounceTimeout.current)
+                  clearTimeout(debounceTimeout.current);
                 setPage(1);
                 fetchReleases(1, "", status, date, sortDir);
               }}
@@ -205,8 +210,20 @@ const ReleaseList = () => {
           </select>
         </div>
 
-        <div className="filter-group" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <span style={{ fontSize: "0.75rem", fontWeight: "600", color: "var(--text-muted)", whiteSpace: "nowrap" }}>Date:</span>
+        <div
+          className="filter-group"
+          style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+        >
+          <span
+            style={{
+              fontSize: "0.75rem",
+              fontWeight: "600",
+              color: "var(--text-muted)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Date:
+          </span>
           <input
             type="date"
             className="form-control"
@@ -226,99 +243,117 @@ const ReleaseList = () => {
           </button>
         )}
       </div>
-
       <div className="table-scroll-wrapper">
-      <table className="data-table">
-        <thead>
-          <tr>
-            <th>Release</th>
-            <th
-              onClick={() =>
-                setSortDir((prev) => (prev === "desc" ? "asc" : "desc"))
-              }
-              style={{ cursor: "pointer", userSelect: "none", whiteSpace: "nowrap" }}
-              title="Toggle Date Sort"
-            >
-              <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
-                Date{" "}
-                {sortDir === "desc" ? (
-                  <ArrowDown size={14} color="var(--primary)" />
-                ) : (
-                  <ArrowUp size={14} color="var(--primary)" />
-                )}
-              </span>
-            </th>
-            <th>Status</th>
-            <th></th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {loading && releases.length === 0 ? (
+        <table className="data-table">
+          <thead>
             <tr>
-              <td colSpan="5" style={{ textAlign: "center" }}>
-                Loading...
-              </td>
-            </tr>
-          ) : releases.length === 0 ? (
-            <tr>
-              <td
-                colSpan="5"
-                style={{ textAlign: "center", color: "var(--text-muted)" }}
-              >
-                No releases found matching your criteria.
-              </td>
-            </tr>
-          ) : (
-            releases.map((release) => {
-              // Bulletproof Date Parsing
-              let formattedDate = "Unknown Date";
-              if (release.release_date) {
-                const ts = !isNaN(release.release_date)
-                  ? Number(release.release_date)
-                  : release.release_date;
-                const dateObj = new Date(ts);
-                if (!isNaN(dateObj.getTime())) {
-                  formattedDate = dateObj.toLocaleDateString("en-US", {
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                  });
+              <th>Release</th>
+              <th
+                onClick={() =>
+                  setSortDir((prev) => (prev === "desc" ? "asc" : "desc"))
                 }
-              }
+                style={{
+                  cursor: "pointer",
+                  userSelect: "none",
+                  whiteSpace: "nowrap",
+                }}
+                title="Toggle Date Sort"
+              >
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "4px",
+                  }}
+                >
+                  Date{" "}
+                  {sortDir === "desc" ? (
+                    <ArrowDown size={14} color="var(--primary)" />
+                  ) : (
+                    <ArrowUp size={14} color="var(--primary)" />
+                  )}
+                </span>
+              </th>
+              <th>Status</th>
+              <th style={{ textAlign: "center" }}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading && releases.length === 0 ? (
+              <tr>
+                <td colSpan="5" style={{ textAlign: "center" }}>
+                  Loading...
+                </td>
+              </tr>
+            ) : releases.length === 0 ? (
+              <tr>
+                <td
+                  colSpan="5"
+                  style={{ textAlign: "center", color: "var(--text-muted)" }}
+                >
+                  No releases found matching your criteria.
+                </td>
+              </tr>
+            ) : (
+              releases.map((release) => {
+                // Bulletproof Date Parsing
+                let formattedDate = "Unknown Date";
+                if (release.release_date) {
+                  const ts = !isNaN(release.release_date)
+                    ? Number(release.release_date)
+                    : release.release_date;
+                  const dateObj = new Date(ts);
+                  if (!isNaN(dateObj.getTime())) {
+                    formattedDate = dateObj.toLocaleDateString("en-US", {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    });
+                  }
+                }
 
-              const formattedStatus =
-                release.status.charAt(0).toUpperCase() +
-                release.status.slice(1);
+                const formattedStatus =
+                  release.status.charAt(0).toUpperCase() +
+                  release.status.slice(1);
 
-              return (
-                <tr key={release.id}>
-                  <td data-label="Release">{release.name}</td>
-                  <td data-label="Date">{formattedDate}</td>
-                  <td data-label="Status">{formattedStatus}</td>
-                  <td className="td-actions">
-                    <button
-                      onClick={() => navigate(`/releases/${release.id}`)}
-                      className="btn btn-icon"
-                    >
-                      View <Eye size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(release.id)}
-                      className="btn btn-icon"
-                      style={{ color: "var(--danger)" }}
-                    >
-                      Delete <Trash2 size={16} />
-                    </button>
-                  </td>
-                </tr>
-              );
-            })
-          )}
-        </tbody>
-      </table>
-      </div> {/* table-scroll-wrapper */}
-
+                return (
+                  <tr key={release.id}>
+                    <td data-label="Release">{release.name}</td>
+                    <td data-label="Date">{formattedDate}</td>
+                    <td data-label="Status">{formattedStatus}</td>
+                    <td className="td-actions">
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          width: "100%",
+                        }}
+                      >
+                        <button
+                          onClick={() => navigate(`/releases/${release.id}`)}
+                          className="btn btn-icon"
+                          style={{ color: "var(--primary)" }}
+                        >
+                          View <Eye size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(release.id)}
+                          className="btn btn-icon"
+                          style={{ color: "var(--danger)" }}
+                        >
+                          Delete <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>{" "}
+      {/* table-scroll-wrapper */}
       {totalPages > 1 && (
         <div className="pagination-bar">
           <span style={{ fontSize: "0.875rem", color: "var(--text-muted)" }}>

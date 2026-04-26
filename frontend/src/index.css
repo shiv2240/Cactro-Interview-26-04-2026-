@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
 :root {
   --bg-color: #f7fafc;
@@ -18,7 +18,7 @@
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   background-color: var(--bg-color);
   color: var(--text-main);
   line-height: 1.5;
@@ -55,7 +55,9 @@ header p {
   border: 1px solid var(--border);
   border-radius: 4px;
   overflow: hidden;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
 
 .box-header {
@@ -300,7 +302,7 @@ header p {
   }
 
   .filter-group--search {
-    flex: 1 1 100%;   /* search takes full row */
+    flex: 1 1 100%; /* search takes full row */
     min-width: unset;
   }
 
@@ -379,8 +381,17 @@ header p {
     margin-top: 0.75rem;
     padding-top: 0.75rem;
     border-top: 1px solid var(--border);
+    text-align: left !important;
+    display: flex;
     justify-content: flex-start;
     gap: 1rem;
+  }
+
+  .data-table td.td-actions > div {
+    display: flex !important;
+    width: 100%;
+    justify-content: space-between !important;
+    gap: 0.5rem !important;
   }
 
   .table-scroll-wrapper {
