@@ -314,10 +314,7 @@ header p {
     padding: 0.75rem 1rem;
   }
 
-  /* Hide the less-critical columns on tablet */
-  .data-table .col-actions-delete {
-    display: none;
-  }
+  /* No hiding logic here anymore */
 }
 
 /* ── Mobile (≤ 540px) ─────────────────────────────────── */
@@ -379,9 +376,11 @@ header p {
   }
 
   .data-table td.td-actions {
-    margin-top: 0.5rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
     justify-content: flex-start;
-    gap: 0.5rem;
+    gap: 1rem;
   }
 
   .table-scroll-wrapper {

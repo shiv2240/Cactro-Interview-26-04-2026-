@@ -205,7 +205,8 @@ const ReleaseList = () => {
           </select>
         </div>
 
-        <div className="filter-group">
+        <div className="filter-group" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <span style={{ fontSize: "0.75rem", fontWeight: "600", color: "var(--text-muted)", whiteSpace: "nowrap" }}>Date:</span>
           <input
             type="date"
             className="form-control"
@@ -295,7 +296,7 @@ const ReleaseList = () => {
                   <td data-label="Release">{release.name}</td>
                   <td data-label="Date">{formattedDate}</td>
                   <td data-label="Status">{formattedStatus}</td>
-                  <td className="td-actions col-actions-delete" colSpan={2}>
+                  <td className="td-actions">
                     <button
                       onClick={() => navigate(`/releases/${release.id}`)}
                       className="btn btn-icon"
