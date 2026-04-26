@@ -15,6 +15,7 @@ const ReleaseEditor = () => {
     steps: []
   });
   const [loading, setLoading] = useState(isEditing);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (isEditing) {
@@ -44,14 +45,21 @@ const ReleaseEditor = () => {
       // format date for text input like mockup (September 20, 2022) 
       // The mockup actually shows "Date" as a text box with input. Using text or date type. 
       // To keep standard HTML5 date, let's format for YYYY-MM-DD
-      const dateObj = new Date(data.release_date);
-      const yyyy = dateObj.getFullYear();
-      const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-      const dd = String(dateObj.getDate()).padStart(2, '0');
+      let dateString = '';
+      if (data.release_date) {
+          const ts = !isNaN(data.release_date) ? Number(data.release_date) : data.release_date;
+          const dateObj = new Date(ts);
+          if (!isNaN(dateObj)) {
+              const yyyy = dateObj.getFullYear();
+              const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+              const dd = String(dateObj.getDate()).padStart(2, '0');
+              dateString = `${yyyy}-${mm}-${dd}`;
+          }
+      }
 
       setRelease({
         ...data,
-        release_date: `${yyyy}-${mm}-${dd}`
+        release_date: dateString
       });
     } catch (error) {
       console.error('Failed to fetch release', error);
@@ -63,6 +71,11 @@ const ReleaseEditor = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setRelease(prev => ({ ...prev, [name]: value }));
+    
+    // Clear error gracefully when user starts typing correctly
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: null }));
+    }
   };
 
   const handleToggleStep = (stepId) => {
@@ -75,6 +88,20 @@ const ReleaseEditor = () => {
   };
 
   const handleSave = async () => {
+    const newErrors = {};
+    if (!release.name || !release.name.trim()) {
+      newErrors.name = 'Please provide a valid release name.';
+    }
+    if (!release.release_date) {
+      newErrors.release_date = 'Please select an intended release date.';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setLoading(true);
     try {
       if (isEditing) {
         await updateRelease(id, release);
@@ -85,7 +112,9 @@ const ReleaseEditor = () => {
       }
     } catch (error) {
       console.error('Failed to save release', error);
-      alert('Failed to save release.');
+      alert(error.message || 'Failed to save release.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -120,25 +149,29 @@ const ReleaseEditor = () => {
       <div className="form-content">
         <div className="form-row">
           <div className="form-group">
-            <label>Release</label>
+            <label>Release <span style={{color: 'var(--danger, #e53e3e)'}}>*</span></label>
             <input 
               type="text" 
               name="name" 
               className="form-control" 
+              style={errors.name ? { borderColor: 'var(--danger, #e53e3e)' } : {}}
               value={release.name} 
               onChange={handleChange}
               placeholder="Version 1.0.1"
             />
+            {errors.name && <span style={{color: 'var(--danger, #e53e3e)', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block'}}>{errors.name}</span>}
           </div>
           <div className="form-group">
-            <label>Date</label>
+            <label>Date <span style={{color: 'var(--danger, #e53e3e)'}}>*</span></label>
             <input 
               type="date" 
               name="release_date" 
               className="form-control" 
+              style={errors.release_date ? { borderColor: 'var(--danger, #e53e3e)' } : {}}
               value={release.release_date} 
               onChange={handleChange}
             />
+            {errors.release_date && <span style={{color: 'var(--danger, #e53e3e)', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block'}}>{errors.release_date}</span>}
           </div>
         </div>
 

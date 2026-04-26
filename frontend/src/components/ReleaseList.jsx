@@ -168,12 +168,19 @@ const ReleaseList = () => {
             <tr><td colSpan="5" style={{textAlign: 'center', color: 'var(--text-muted)'}}>No releases found matching your criteria.</td></tr>
           ) : (
             releases.map((release) => {
-              const dateObj = new Date(release.release_date);
-              const formattedDate = dateObj.toLocaleDateString("en-US", {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              });
+              // Bulletproof Date Parsing
+              let formattedDate = 'Unknown Date';
+              if (release.release_date) {
+                const ts = !isNaN(release.release_date) ? Number(release.release_date) : release.release_date;
+                const dateObj = new Date(ts);
+                if (!isNaN(dateObj)) {
+                  formattedDate = dateObj.toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  });
+                }
+              }
 
               const formattedStatus = release.status.charAt(0).toUpperCase() + release.status.slice(1);
 
